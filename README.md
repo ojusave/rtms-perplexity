@@ -24,7 +24,7 @@ This application demonstrates real-time processing of Zoom meeting transcripts u
 
 1. Clone this repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/ojusave/rtms-perplexity.git
 cd rtms-perplexity
 ```
 
@@ -111,8 +111,100 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-[Add your license information here]
+MIT License
+
+Copyright (c) 2024 Ojus Ave
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ## Support
 
-For questions or issues, please open an issue in the repository. 
+For questions or issues, please open an issue in the repository.
+
+## Getting API Keys
+
+### Perplexity API
+1. Visit [Sonar by Perplexity](https://sonar.perplexity.ai/)
+2. Click "Get Started" to create an account
+3. Navigate to the API section in your dashboard
+4. Generate a new API key
+5. Copy the API key and add it to your `.env` file as `PERPLEXITY_API_KEY`
+
+### Anthropic Claude API
+1. Visit [Anthropic](https://www.anthropic.com/)
+2. Sign up for an account and request API access
+3. Once approved, generate an API key from your dashboard
+4. Add the key to your `.env` file as `ANTHROPIC_API_KEY`
+
+## LangChain Integration
+
+This project uses LangChain for orchestrating the conversation analysis pipeline. Here's how it works:
+
+### Key Components
+
+1. **Conversation Chain**
+   - Uses Claude 3 Sonnet as the base LLM
+   - Implements memory using `ConversationBufferWindowMemory`
+   - Maintains a rolling window of recent conversations
+
+2. **Custom Prompts**
+   ```python
+   from langchain.prompts import PromptTemplate
+   
+   ACTION_ITEM_TEMPLATE = """
+   Analyze the following meeting transcript and extract action items:
+   {transcript}
+   
+   Extract action items in the following format:
+   - [Assignee] Task description (Due date if mentioned)
+   """
+   ```
+
+3. **Memory Management**
+   ```python
+   from langchain.memory import ConversationBufferWindowMemory
+   
+   memory = ConversationBufferWindowMemory(
+       k=5,  # Keep last 5 interactions
+       return_messages=True
+   )
+   ```
+
+4. **Chain Configuration**
+   ```python
+   from langchain.chains import ConversationChain
+   
+   chain = ConversationChain(
+       llm=claude,
+       memory=memory,
+       prompt=action_item_prompt
+   )
+   ```
+
+### Usage Example
+
+```python
+# Process a transcript chunk
+response = chain.run(transcript_chunk)
+
+# Extract action items
+action_items = response.split('\n')
+```
+
+For more details on LangChain integration, see `langchain_processor.py`. 
